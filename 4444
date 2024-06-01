@@ -1,0 +1,64 @@
+import sys
+import bisect
+
+
+class QueryProcessor:
+    def __init__(self):
+        self.set = set()
+        self.sorted_list = []
+        self.last_sum = 0
+
+    def f(self, x):
+        return (x + self.last_sum) % 1000000001
+
+    def process_queries(self, queries):
+        results = []
+        for query in queries:
+            if query[0] == '+':
+                i = int(query[2:])
+                value = self.f(i)
+                if value not in self.set:
+                    self.set.add(value)
+                    bisect.insort(self.sorted_list, value)
+            elif query[0] == '-':
+                i = int(query[2:])
+                value = self.f(i)
+                if value in self.set:
+                    self.set.remove(value)
+                    self.sorted_list.remove(value)
+            elif query[0] == '?':
+                i = int(query[2:])
+                value = self.f(i)
+                results.append("Found" if value in self.set else "Not found")
+            elif query[0] == 's':
+                parts = query.split()
+                l = int(parts[1])
+                r = int(parts[2])
+                value_l = self.f(l)
+                value_r = self.f(r)
+                self.last_sum = self.range_sum(value_l, value_r)
+                results.append(self.last_sum)
+        return results
+
+    def range_sum(self, l, r):
+        start = bisect.bisect_left(self.sorted_list, l)
+        end = bisect.bisect_right(self.sorted_list, r)
+        return sum(self.sorted_list[start:end])
+
+
+def main():
+    input = sys.stdin.read
+    data = input().splitlines()
+
+    n = int(data[0])
+    queries = data[1:n + 1]
+
+    processor = QueryProcessor()
+    results = processor.process_queries(queries)
+
+    for result in results:
+        print(result)
+
+
+if __name__ == "__main__":
+    main()
